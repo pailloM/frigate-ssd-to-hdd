@@ -50,6 +50,7 @@ services:
     restart: unless-stopped
     environment:
       - CRON_SCHEDULE=0 2 * * *  # default: nightly at 2 AM
+      - MIN_AGE_DAYS=0           # default: move all files; set >0 to only move files older than N days
     volumes:
       - /path/to/ssd/frigate:/media/frigate
       - /path/to/hdd/frigate:/media/frigate-hdd

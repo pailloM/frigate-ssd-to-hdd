@@ -3,15 +3,22 @@ set -euo pipefail
 
 SSD_RECORDINGS="/media/frigate/recordings"
 HDD_RECORDINGS="/media/frigate-hdd/recordings"
+MIN_AGE_DAYS="${MIN_AGE_DAYS:-0}"
 
 log() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') — $*"
 }
 
 sync_to_hdd() {
-    log "Starting SSD → HDD sync"
+    local find_args=("$SSD_RECORDINGS" -type f)
+    if [ "$MIN_AGE_DAYS" -gt 0 ]; then
+        find_args+=(-mtime "+${MIN_AGE_DAYS}")
+        log "Starting SSD → HDD sync (files older than ${MIN_AGE_DAYS} days)"
+    else
+        log "Starting SSD → HDD sync"
+    fi
 
-    find "$SSD_RECORDINGS" -type f -print0 | while IFS= read -r -d '' ssd_file; do
+    find "${find_args[@]}" -print0 | while IFS= read -r -d '' ssd_file; do
         rel_path="${ssd_file#$SSD_RECORDINGS/}"
         hdd_file="$HDD_RECORDINGS/$rel_path"
 
