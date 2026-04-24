@@ -16,14 +16,14 @@ The trade-off is that SSD capacity fills up quickly with Frigate recordings. Thi
 
 ## How it works
 
-The script syncs recordings between SSD and HDD without storing more data than Frigate intends to keep. Retention is controlled entirely through Frigate's config — no duplicate cleanup logic needed.
+The script syncs Frigate's `recordings` and `clips` directories between SSD and HDD without storing more data than Frigate intends to keep. Retention is controlled entirely through Frigate's config — no duplicate cleanup logic needed.
 
 **SSD → HDD sync:**
-- Recordings on SSD that don't exist on HDD are moved to HDD
+- Files on SSD that don't exist on HDD are moved to HDD
 - Symlinks are placed on the SSD so Frigate can still locate and replay them
 
 **HDD cleanup:**
-- Recordings on HDD whose corresponding symlinks no longer exist on SSD are deleted
+- Files on HDD whose corresponding symlinks no longer exist on SSD are deleted
 - When Frigate removes a file, the HDD copy is automatically cleaned up
 
 ## Docker Compose

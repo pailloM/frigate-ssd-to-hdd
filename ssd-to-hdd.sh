@@ -1,8 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
-SSD_RECORDINGS="/media/frigate/recordings"
-HDD_RECORDINGS="/media/frigate-hdd/recordings"
+SSD_BASE="/media/frigate"
+HDD_BASE="/media/frigate-hdd"
+SUBDIRS=("recordings" "clips")
 MIN_AGE_DAYS="${MIN_AGE_DAYS:-0}"
 
 log() {
@@ -10,54 +11,69 @@ log() {
 }
 
 sync_to_hdd() {
-    local find_args=("$SSD_RECORDINGS" -type f)
+    local subdir="$1"
+    local ssd_dir="$SSD_BASE/$subdir"
+    local hdd_dir="$HDD_BASE/$subdir"
+    [ -d "$ssd_dir" ] || return 0
+
+    local find_args=("$ssd_dir" -type f)
     if [ "$MIN_AGE_DAYS" -gt 0 ]; then
         find_args+=(-mtime "+${MIN_AGE_DAYS}")
-        log "Starting SSD → HDD sync (files older than ${MIN_AGE_DAYS} days)"
+        log "Starting SSD → HDD sync for $subdir (files older than ${MIN_AGE_DAYS} days)"
     else
-        log "Starting SSD → HDD sync"
+        log "Starting SSD → HDD sync for $subdir"
     fi
 
     find "${find_args[@]}" -print0 | while IFS= read -r -d '' ssd_file; do
-        rel_path="${ssd_file#$SSD_RECORDINGS/}"
-        hdd_file="$HDD_RECORDINGS/$rel_path"
+        rel_path="${ssd_file#$ssd_dir/}"
+        hdd_file="$hdd_dir/$rel_path"
 
         [ -f "$hdd_file" ] && continue
 
         mkdir -p "$(dirname "$hdd_file")"
         mv "$ssd_file" "$hdd_file"
         ln -s "$hdd_file" "$ssd_file"
-        log "Moved: $rel_path"
+        log "Moved: $subdir/$rel_path"
     done
 
-    log "SSD → HDD sync complete"
+    log "SSD → HDD sync complete for $subdir"
 }
 
 cleanup_hdd() {
-    log "Starting HDD cleanup"
+    local subdir="$1"
+    local ssd_dir="$SSD_BASE/$subdir"
+    local hdd_dir="$HDD_BASE/$subdir"
+    [ -d "$hdd_dir" ] || return 0
 
-    find "$HDD_RECORDINGS" -type f -print0 | while IFS= read -r -d '' hdd_file; do
-        rel_path="${hdd_file#$HDD_RECORDINGS/}"
-        ssd_path="$SSD_RECORDINGS/$rel_path"
+    log "Starting HDD cleanup for $subdir"
+
+    find "$hdd_dir" -type f -print0 | while IFS= read -r -d '' hdd_file; do
+        rel_path="${hdd_file#$hdd_dir/}"
+        ssd_path="$ssd_dir/$rel_path"
 
         # If Frigate removed the entry from SSD entirely, delete from HDD
         if [ ! -e "$ssd_path" ] && [ ! -L "$ssd_path" ]; then
             rm "$hdd_file"
-            log "Cleaned: $rel_path"
+            log "Cleaned: $subdir/$rel_path"
         fi
     done
 
-    find "$HDD_RECORDINGS" -mindepth 1 -type d -empty -delete 2>/dev/null || true
+    find "$hdd_dir" -mindepth 1 -type d -empty -delete 2>/dev/null || true
 
-    log "HDD cleanup complete"
+    log "HDD cleanup complete for $subdir"
 }
 
 repair_symlinks() {
-    log "Starting symlink repair"
+    local subdir="$1"
+    local ssd_dir="$SSD_BASE/$subdir"
+    local hdd_dir="$HDD_BASE/$subdir"
+    [ -d "$hdd_dir" ] || return 0
 
-    find "$HDD_RECORDINGS" -type f -print0 | while IFS= read -r -d '' hdd_file; do
-        rel_path="${hdd_file#$HDD_RECORDINGS/}"
-        ssd_path="$SSD_RECORDINGS/$rel_path"
+    log "Starting symlink repair for $subdir"
+
+    find "$hdd_dir" -type f -print0 | while IFS= read -r -d '' hdd_file; do
+        rel_path="${hdd_file#$hdd_dir/}"
+        ssd_path="$ssd_dir/$rel_path"
 
         # Skip if a valid symlink already exists
         [ -L "$ssd_path" ] && [ -e "$ssd_path" ] && continue
@@ -67,44 +83,55 @@ repair_symlinks() {
 
         mkdir -p "$(dirname "$ssd_path")"
         ln -s "$hdd_file" "$ssd_path"
-        log "Repaired: $rel_path"
+        log "Repaired: $subdir/$rel_path"
     done
 
-    log "Symlink repair complete"
+    log "Symlink repair complete for $subdir"
 }
 
 revert() {
-    log "Starting revert"
+    local subdir="$1"
+    local ssd_dir="$SSD_BASE/$subdir"
+    local hdd_dir="$HDD_BASE/$subdir"
+    [ -d "$ssd_dir" ] || return 0
 
-    find "$SSD_RECORDINGS" -type l -print0 | while IFS= read -r -d '' ssd_link; do
-        rel_path="${ssd_link#$SSD_RECORDINGS/}"
-        hdd_file="$HDD_RECORDINGS/$rel_path"
+    log "Starting revert for $subdir"
+
+    find "$ssd_dir" -type l -print0 | while IFS= read -r -d '' ssd_link; do
+        rel_path="${ssd_link#$ssd_dir/}"
+        hdd_file="$hdd_dir/$rel_path"
 
         if [ -f "$hdd_file" ]; then
             rm "$ssd_link"
             mv "$hdd_file" "$ssd_link"
-            log "Reverted: $rel_path"
+            log "Reverted: $subdir/$rel_path"
         else
             rm "$ssd_link"
-            log "Removed broken symlink: $rel_path"
+            log "Removed broken symlink: $subdir/$rel_path"
         fi
     done
 
-    find "$HDD_RECORDINGS" -mindepth 1 -type d -empty -delete 2>/dev/null || true
+    find "$hdd_dir" -mindepth 1 -type d -empty -delete 2>/dev/null || true
 
-    log "Revert complete"
+    log "Revert complete for $subdir"
 }
 
 case "${1:-}" in
     sync)
-        sync_to_hdd
-        cleanup_hdd
+        for subdir in "${SUBDIRS[@]}"; do
+            sync_to_hdd "$subdir"
+            cleanup_hdd "$subdir"
+        done
         ;;
     repair)
-        repair_symlinks
+        for subdir in "${SUBDIRS[@]}"; do
+            repair_symlinks "$subdir"
+        done
         ;;
     revert)
-        revert
+        for subdir in "${SUBDIRS[@]}"; do
+            revert "$subdir"
+        done
         ;;
     ""|*)
         echo "Usage: $0 {sync|repair|revert}"
