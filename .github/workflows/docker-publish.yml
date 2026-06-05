@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
-      REPO_NAME: ${{ env.REPO_NAME }}
+      REPO_NAME: ${{ github.repository }}
       UPSTREAM_REPO: frigate-ssd-to-hdd/frigate-ssd-to-hdd
       REGISTRY: ghcr.io
     permissions:
