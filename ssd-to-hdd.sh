@@ -1,4 +1,8 @@
 #!/bin/bash
+log() {
+    echo "$(date '+%Y-%m-%d %H:%M:%S') — $*"
+}
+
 LOCKFILE=/var/lock/ssd_to_hdd.lock
 exec 9>"$LOCKFILE"
 if ! flock -n 9; then
@@ -14,10 +18,6 @@ SSD_BASE="/media/frigate"
 HDD_BASE="/media/frigate-hdd"
 SUBDIRS=("recordings" "clips")
 MIN_AGE_DAYS="${MIN_AGE_DAYS:-0}"
-
-log() {
-    echo "$(date '+%Y-%m-%d %H:%M:%S') — $*"
-}
 
 sync_to_hdd() {
     local subdir="$1"
