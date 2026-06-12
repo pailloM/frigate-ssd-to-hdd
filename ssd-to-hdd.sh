@@ -1,4 +1,13 @@
 #!/bin/bash
+LOCKFILE=/var/lock/ssd_to_hdd.lock
+exec 9>"$LOCKFILE"
+if ! flock -n 9; then
+  log "Another instance is running; exiting."
+  exit 0
+fi
+# keep fd 9 open for the lifetime of the script to hold the lock
+
+
 set -euo pipefail
 
 SSD_BASE="/media/frigate"
