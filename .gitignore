@@ -1,0 +1,13 @@
+# Test artifacts
+.bats/
+test_tmp/
+*.lock
+
+# IDE
+.vscode/settings.json
+.DS_Store
+
+# Editor backups
+*~
+*.swp
+*.swo

@@ -1,0 +1,90 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Run all BATS tests",
+            "type": "shell",
+            "command": "bats",
+            "args": ["test_ssd_to_hdd.bats"],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared",
+                "showReuseMessage": false
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Run single test (verbose)",
+            "type": "shell",
+            "command": "bats",
+            "args": ["${file}", "-v"],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "new"
+            }
+        },
+        {
+            "label": "Run tests with timing",
+            "type": "shell",
+            "command": "bats",
+            "args": ["test_ssd_to_hdd.bats", "--timing"],
+            "group": "test",
+            "presentation": {
+                "reveal": "always",
+                "focus": true
+            }
+        },
+        {
+            "label": "Lint bash script",
+            "type": "shell",
+            "command": "shellcheck",
+            "args": ["-x", "ssd_to_hdd.sh"],
+            "group": "test",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": [
+                {
+                    "owner": "shellcheck",
+                    "pattern": {
+                        "regexp": "^(.+):(\\d+):(\\d+): (\\w+): (.+)$",
+                        "file": 1,
+                        "line": 2,
+                        "column": 3,
+                        "severity": 4,
+                        "message": 5
+                    }
+                }
+            ]
+        },
+        {
+            "label": "Format bash script",
+            "type": "shell",
+            "command": "shfmt",
+            "args": ["-i", "4", "-w", "ssd_to_hdd.sh"],
+            "group": "test",
+            "presentation": {
+                "reveal": "silent"
+            }
+        },
+        {
+            "label": "Setup test environment",
+            "type": "shell",
+            "command": "bash",
+            "args": ["./setup_tests.sh"],
+            "group": "test",
+            "presentation": {
+                "reveal": "always"
+            }
+        }
+    ]
+}

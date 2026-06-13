@@ -1,0 +1,31 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug main script",
+            "type": "bashdb",
+            "request": "launch",
+            "program": "${workspaceFolder}/ssd_to_hdd.sh",
+            "args": ["sync"],
+            "cwd": "${workspaceFolder}",
+            "pathMapping": [
+                {
+                    "useNewSource": false,
+                    "sourceRoot": "",
+                    "substitution": "${workspaceFolder}"
+                }
+            ],
+            "showDebugOutput": true,
+            "trace": true,
+        },
+        {
+            "name": "Debug single BATS test",
+            "type": "bashdb",
+            "request": "launch",
+            "program": "${workspaceFolder}/test_ssd_to_hdd.bats",
+            "cwd": "${workspaceFolder}",
+            "showDebugOutput": true,
+            "justMyCode": false,
+        }
+    ]
+}
