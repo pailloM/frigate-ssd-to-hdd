@@ -71,6 +71,7 @@ sync_to_hdd() {
                 continue
             }
             ((file_count++))
+            log "Moved $ssd_file to $hdd_file"
         else
             log_error "Failed to move $rel_path"
         fi
