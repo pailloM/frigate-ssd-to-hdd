@@ -6,8 +6,8 @@ on:
   push:
     tags:
       - 'v*'
-  schedule:
-    - cron: '0 3 * * *'   # nightly at 03:00 UTC
+  # schedule:
+  #  - cron: '0 3 * * *'   # nightly at 03:00 UTC
   workflow_dispatch: {}
 
 jobs:
