@@ -11,11 +11,25 @@ log_error() {
 }
 
 LOCKFILE="/var/lock/ssd_to_hdd.lock"
+WORK_IN_PROGRESS=""  # Track current operation
+
 cleanup() {
+
+    local exit_code=$?
+    
+    log_error "Caught signal or exit. Cleaning up..."
+
+    if [ -n "$WORK_IN_PROGRESS" ]; then
+        log_error "Migration interrupted. File in progress: $WORK_IN_PROGRESS"
+    fi
+    
     exec 9>&-
     rm -f -- "$LOCKFILE"
+
+    exit "$exit_code"
+
 }
-trap cleanup EXIT
+trap cleanup EXIT SIGTERM SIGINT
 
 exec 9>"$LOCKFILE"
 if ! flock -n 9; then
@@ -56,6 +70,7 @@ sync_to_hdd() {
     while IFS= read -r -d '' ssd_file;  do
         local rel_path="${ssd_file#"$ssd_dir/"}"
         local hdd_file="$hdd_dir/$rel_path"
+        WORK_IN_PROGRESS="$ssd_file"
 
         # Skip if file already migrated
         [ -f "$hdd_file" ] && continue
