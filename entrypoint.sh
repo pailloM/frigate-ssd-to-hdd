@@ -6,6 +6,8 @@ MIN_AGE_DAYS="${MIN_AGE_DAYS:-0}"
 
 echo "$CRON_SCHEDULE MIN_AGE_DAYS=$MIN_AGE_DAYS /usr/local/bin/ssd-to-hdd.sh sync >> /proc/1/fd/1 2>&1" > /etc/crontabs/root
 
+sleep 180
+
 /usr/local/bin/ssd-to-hdd.sh sync
 
 exec crond -f -l 2
