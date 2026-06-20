@@ -17,7 +17,11 @@ cleanup() {
 
     local exit_code=$?
     
-    log_error "Caught signal or exit. Cleaning up..."
+    if exit_code ! eq 0; then
+        log_error "Caught signal. Cleaning up..."
+    else
+        log "Exiting cleaning up..."
+    fi
 
     if [ -n "$WORK_IN_PROGRESS" ]; then
         log_error "Migration interrupted. File in progress: $WORK_IN_PROGRESS"
