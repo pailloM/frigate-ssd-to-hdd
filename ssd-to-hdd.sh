@@ -20,7 +20,7 @@ cleanup() {
     if [ $exit_code -ne 0 ]; then
         log_error "Caught signal. Cleaning up..."
     else
-        log "Exiting cleaning up..."
+        log "Exiting, cleaning up..."
     fi
 
     if [ -n "$WORK_IN_PROGRESS" ]; then
@@ -29,6 +29,8 @@ cleanup() {
     
     exec 9>&-
     rm -f -- "$LOCKFILE"
+
+    log "Done!"
 
     exit "$exit_code"
 
