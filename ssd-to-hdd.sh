@@ -17,7 +17,7 @@ cleanup() {
 
     local exit_code=$?
     
-    if exit_code ! eq 0; then
+    if [ $exit_code -ne 0 ]; then
         log_error "Caught signal. Cleaning up..."
     else
         log "Exiting cleaning up..."
