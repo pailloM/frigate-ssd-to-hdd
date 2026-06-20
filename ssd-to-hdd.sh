@@ -99,7 +99,7 @@ sync_to_hdd() {
         WORK_IN_PROGRESS=""
     done < <(
         find "$ssd_dir" -type f \
-            -mtime +"${MIN_AGE_DAYS}" \
+            -mtime "${MIN_AGE_DAYS}" \
             -print0
     )
 
