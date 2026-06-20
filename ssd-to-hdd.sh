@@ -90,6 +90,7 @@ sync_to_hdd() {
         else
             log_error "Failed to move $rel_path"
         fi
+        WORK_IN_PROGRESS=""
     done < <(
         find "$ssd_dir" -type f \
             -mtime "${MIN_AGE_DAYS}" \
@@ -112,11 +113,13 @@ cleanup_hdd() {
     while IFS= read -r -d '' hdd_file; do
         local rel_path="${hdd_file#"$hdd_dir/"}"
         local ssd_path="$ssd_dir/$rel_path"
+        WORK_IN_PROGRESS="$hdd_file"
 
         # If Frigate removed the entry from SSD entirely, delete from HDD
         if [ ! -e "$ssd_path" ] && [ ! -L "$ssd_path" ]; then
             rm -f -- "$hdd_file" && ((file_count++))
         fi
+        WORK_IN_PROGRESS=""
     done < <(find "$hdd_dir" -type f -print0)
 
     find "$hdd_dir" -mindepth 1 -type d -empty -delete 2>/dev/null || true
