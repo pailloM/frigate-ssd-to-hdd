@@ -46,7 +46,7 @@ services:
 
   frigate-ssd-to-hdd:
     container_name: frigate-ssd-to-hdd
-    build: ./frigate-ssd-to-hdd/
+    image: ghcr.io/paillom/frigate-ssd-to-hdd:latest
     restart: unless-stopped
     environment:
       - CRON_SCHEDULE=0 2 * * *  # default: nightly at 2 AM
